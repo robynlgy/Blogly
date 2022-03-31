@@ -1,11 +1,26 @@
-{% extends 'base.html' %}
-{% block content %}
-<img src="{{user.image_url}}" alt="No Image Provided" class="img-thumbnail" width="300px">
+{% extends 'base.html' %} {% block content %}
+<img
+  src="{{user.image_url}}"
+  alt="No Image Provided"
+  class="img-thumbnail"
+  width="300px"
+/>
 <h1>{{user.first_name}} {{user.last_name}}</h1>
 <a href="/users/{{user.id}}/edit" class="btn btn-primary my-2">Edit</a>
 
 <form method="post" action="/users/{{user.id}}/delete">
-<button class="btn btn-danger">Delete</button>
+  <button class="btn btn-danger">Delete</button>
 </form>
+
+<h1>Post</h1>
+<ul class="list-group mb-3">
+  {% for post in user.posts %}
+
+  <li class="list-group-item">
+    <a href="/posts/{{post.id}}"> {{post.title}}</a>
+  </li>
+  {% endfor %}
+</ul>
+<a class="btn btn-primary mt-2" href="/users/{{user.id}}/posts/new">Add Post</a>
 
 {% endblock %}

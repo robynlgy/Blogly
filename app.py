@@ -4,12 +4,12 @@ from email.mime import image
 from urllib import response
 from flask import Flask, render_template, redirect, request, flash
 from flask_debugtoolbar import DebugToolbarExtension
-from models import db, connect_db, User
+from models import db, connect_db, User, Post
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "oh-so-secret"
 # debug = DebugToolbarExtension(app)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///blogly' # added davidjeffers:1234@localhost:5432
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://davidjeffers:1234@localhost:5432/blogly' # added davidjeffers:1234@localhost:5432
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ECHO'] = True
 
@@ -55,6 +55,7 @@ def get_user_detail(user_id):
     """Show user details page."""
 
     user = User.query.get_or_404(user_id)
+    
 
     return render_template("user_detail.html",user=user)
 
@@ -95,4 +96,43 @@ def post_delete_user(user_id):
 
     flash('User deleted.')
     return redirect('/users')
+
+@app.get('/users/<int:user_id>/posts/new')
+def get_post_form(user_id):
+    """Show new post form"""
+
+    user = User.query.get_or_404(user_id)
+    
+    return render_template('new_post.html', user=user)
+
+@app.post('/users/<int:user_id>/posts/new')
+def post_new_post(user_id):
+    """Add user post to database"""
+    
+    title = request.form['title']
+    content = request.form['content']
+    print('title', title)
+    print('content', content)
+    post = Post(title=title, content=content, user_id=user_id)
+    db.session.add(post)
+    db.session.commit()
+    
+    flash('Added new post')
+    return redirect(f'/users/{user_id}')
+
+@app.get('/posts/<int:post_id>')
+def get_post(post_id):
+    """Show a post"""
+
+    post = Post.query.get_or_404(post_id)
+
+    return render_template('show_post.html', post=post)
+
+@app.get('/posts/<int:post_id>/edit')
+def get_edit_post(post_id):
+    """Show form to edit post"""
+
+    post = Post.query.get_or_404(post_id)
+
+    return render_template('edit_post.html', post=post)
 
