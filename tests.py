@@ -52,9 +52,46 @@ class UserViewTestCase(TestCase):
         db.session.rollback()
 
     def test_list_users(self):
+        """Check users page display correctly."""
         with self.client as c:
             resp = c.get("/users")
             self.assertEqual(resp.status_code, 200)
             html = resp.get_data(as_text=True)
             self.assertIn("test_first", html)
             self.assertIn("test_last", html)
+
+    def test_post_users(self):
+        """Create test user and check that it shows up"""
+        with self.client as c:
+            resp = c.post("/users/new",
+                        data=
+                            {'first_name':'dog123',
+                            'last_name':'doggo456',
+                            'image_url':DEFAULT_IMAGE_URL},
+                        follow_redirects = True)
+            html = resp.get_data(as_text=True)
+            self.assertIn('dog123 doggo456',html)
+            self.assertEqual(resp.status_code, 200)
+
+    def test_get_user_detail(self):
+        """Check user details page display correctly."""
+        with self.client as c:
+            resp = c.get(f"/users/{self.user_id}")
+            self.assertEqual(resp.status_code, 200)
+            html = resp.get_data(as_text=True)
+            self.assertIn("test_first",html)
+            self.assertIn("test_last",html)
+
+    def test_post_edit_user(self):
+        """Check edits are made"""
+        with self.client as c:
+            resp=c.post(f"/users/{self.user_id}/edit",
+                data =
+                        {'first_name':'python',
+                        'last_name':'flask',
+                        'image_url':DEFAULT_IMAGE_URL},
+                follow_redirects = True)
+            self.assertEqual(resp.status_code, 200)
+            html = resp.get_data(as_text=True)
+            self.assertIn("python",html)
+            self.assertIn("flask",html)
