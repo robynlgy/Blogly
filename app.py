@@ -2,13 +2,13 @@
 
 from email.mime import image
 from urllib import response
-from flask import Flask, render_template, redirect, request
+from flask import Flask, render_template, redirect, request, flash
 from flask_debugtoolbar import DebugToolbarExtension
 from models import db, connect_db, User
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "oh-so-secret"
-debug = DebugToolbarExtension(app)
+# debug = DebugToolbarExtension(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///blogly' # added davidjeffers:1234@localhost:5432
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ECHO'] = True
@@ -26,7 +26,7 @@ def get_homepage():
 def get_users():
     """Show all users."""
 
-    users = User.query.all()
+    users = User.query.order_by('last_name','first_name').all()
 
     return render_template("index.html", users=users)
 
@@ -34,7 +34,7 @@ def get_users():
 def get_new_user_page():
     """Show new user form."""
 
-    return render_template("newUser.html")
+    return render_template("new_user.html")
 
 @app.post('/users/new')
 def post_new_user():
@@ -47,23 +47,24 @@ def post_new_user():
     db.session.add(user)
     db.session.commit()
 
+    flash('New User added!')
     return redirect('/users')
 
 @app.get('/users/<int:user_id>')
 def get_user_detail(user_id):
     """Show user details page."""
 
-    user = User.query.get(user_id)
+    user = User.query.get_or_404(user_id)
 
-    return render_template("userDetail.html",user=user)
+    return render_template("user_detail.html",user=user)
 
 @app.get('/users/<int:user_id>/edit')
 def get_edit_form(user_id):
     """Show user edit page."""
 
-    user = User.query.get(user_id)
+    user = User.query.get_or_404(user_id)
 
-    return render_template("editUser.html",user=user)
+    return render_template("edit_user.html",user=user)
 
 @app.post('/users/<int:user_id>/edit')
 def post_edit_user(user_id):
@@ -80,6 +81,7 @@ def post_edit_user(user_id):
 
     db.session.commit()
 
+    flash('User info updated.')
     return redirect('/users')
 
 @app.post('/users/<int:user_id>/delete')
@@ -91,5 +93,6 @@ def post_delete_user(user_id):
     User.query.filter(User.id==user_id).delete()
     db.session.commit()
 
+    flash('User deleted.')
     return redirect('/users')
 

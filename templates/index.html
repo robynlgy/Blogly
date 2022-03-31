@@ -1,15 +1,17 @@
 {% extends 'base.html' %} {% block content %}
 <!-- test_first -->
+
+
 <h1>Users</h1>
-<ul>
+<ul class="list-group mb-3">
   {% for user in users %}
 
-  <li>
+  <li class="list-group-item">
     <a href="/users/{{user.id}}"> {{user.first_name}} {{user.last_name}}</a>
   </li>
   {% endfor %}
 </ul>
-<button><a href="/users/new">Add User</a></button>
+<a href="/users/new" class="btn btn-primary">Add User</a>
 
 <!-- test_last -->
 {% endblock %}

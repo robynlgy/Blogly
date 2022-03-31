@@ -2,10 +2,10 @@
 {% block content %}
 <img src="{{user.image_url}}" alt="No Image Provided" class="img-thumbnail" width="300px">
 <h1>{{user.first_name}} {{user.last_name}}</h1>
-<button><a href="/users/{{user.id}}/edit">Edit</a></button>
+<a href="/users/{{user.id}}/edit" class="btn btn-primary my-2">Edit</a>
 
 <form method="post" action="/users/{{user.id}}/delete">
-<button>Delete</button>
+<button class="btn btn-danger">Delete</button>
 </form>
 
 {% endblock %}
