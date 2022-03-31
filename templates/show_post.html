@@ -4,7 +4,9 @@
 <p>{{post.content}}</p>
 
 <p>By {{post.user.first_name}} {{post.user.last_name}}</p>
-<a href="users/{{post.user.id}}" class="btn btn-outline-primary">Cancel</a>
+<a href="/users/{{post.user.id}}" class="btn btn-outline-primary">Cancel</a>
 <a href="/posts/{{post.id}}/edit" class="btn btn-primary">Edit</a>
-<a class="btn btn-danger">Delete</a>
+<form action="/posts/{{post.id}}/delete" method="post" class="d-inline" >
+<button class="btn btn-danger">Delete</button>
+</form>
 {% endblock %}

@@ -1,7 +1,7 @@
 from unittest import TestCase
 
 from app import app, db
-from models import DEFAULT_IMAGE_URL, User
+from models import DEFAULT_IMAGE_URL, User, Post
 
 # Let's configure our app to use a different database for tests
 app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql:///blogly_test"
@@ -18,8 +18,9 @@ app.config['DEBUG_TB_HOSTS'] = ['dont-show-debug-toolbar']
 
 db.create_all()
 
-class UserViewTestCase(TestCase):
-    """Test views for users."""
+
+class PostViewTestCase(TestCase):
+    """Test views for posts."""
 
     def setUp(self):
         """Create test client, add sample data."""
@@ -27,6 +28,7 @@ class UserViewTestCase(TestCase):
         # As you add more models later in the exercise, you'll want to delete
         # all of their records before each test just as we're doing with the
         # User model below.
+        Post.query.delete()
         User.query.delete()
 
         self.client = app.test_client()
@@ -38,6 +40,7 @@ class UserViewTestCase(TestCase):
         second_user = User(first_name="test_first_two", last_name="test_last_two",
                            image_url=None)
 
+
         db.session.add_all([test_user, second_user])
         db.session.commit()
 
@@ -47,51 +50,56 @@ class UserViewTestCase(TestCase):
         # value of their id, since it will change each time our tests are run.
         self.user_id = test_user.id
 
+        user_post = Post(title="test_title_2", content = "test_content_2",user_id = self.user_id)
+        db.session.add_all([user_post])
+        db.session.commit()
+
+        self.user_post = user_post
+
     def tearDown(self):
         """Clean up any fouled transaction."""
         db.session.rollback()
 
-    def test_list_users(self):
-        """Check users page display correctly."""
-        with self.client as c:
-            resp = c.get("/users")
-            self.assertEqual(resp.status_code, 200)
-            html = resp.get_data(as_text=True)
-            self.assertIn("test_first", html)
-            self.assertIn("test_last", html)
 
-    def test_post_users(self):
-        """Create test user and check that it shows up"""
+    def test_new_post(self):
+        """Check new posts created are saved to database"""
         with self.client as c:
-            resp = c.post("/users/new",
-                        data=
-                            {'first_name':'dog123',
-                            'last_name':'doggo456',
-                            'image_url':DEFAULT_IMAGE_URL},
-                        follow_redirects = True)
-            html = resp.get_data(as_text=True)
-            self.assertIn('dog123 doggo456',html)
-            self.assertEqual(resp.status_code, 200)
-
-    def test_get_user_detail(self):
-        """Check user details page display correctly."""
-        with self.client as c:
-            resp = c.get(f"/users/{self.user_id}")
-            self.assertEqual(resp.status_code, 200)
-            html = resp.get_data(as_text=True)
-            self.assertIn("test_first",html)
-            self.assertIn("test_last",html)
-
-    def test_post_edit_user(self):
-        """Check edits are made"""
-        with self.client as c:
-            resp=c.post(f"/users/{self.user_id}/edit",
+            resp=c.post(f"/users/{self.user_id}/posts/new",
                 data =
-                        {'first_name':'python',
-                        'last_name':'flask',
-                        'image_url':DEFAULT_IMAGE_URL},
+                        {'title':'test_title',
+                        'content':'test_content',
+                        'user_id': self.user_id},
                 follow_redirects = True)
             self.assertEqual(resp.status_code, 200)
             html = resp.get_data(as_text=True)
-            self.assertIn("python",html)
-            self.assertIn("flask",html)
+            self.assertIn("test_title",html)
+
+    def test_edit_post(self):
+        """Check edits to post are updated on database"""
+        with self.client as c:
+            resp=c.post(f"/posts/{self.user_post.id}/edit",
+                data =
+                        {'title':'test_title_2_edited',
+                        'content':'test_content_2_edited',
+                        'user_id': self.user_id},
+                follow_redirects = True)
+            self.assertEqual(resp.status_code, 200)
+            html = resp.get_data(as_text=True)
+            self.assertIn("test_title_2_edited",html)
+
+    def test_delete_post(self):
+        """Check there is one less post in database after delete action."""
+        posts_before = len(Post.query.all())
+
+        with self.client as c:
+            # breakpoint()
+            resp= c.post(f"/posts/{self.user_post.id}/delete",
+                        follow_redirects=True)
+            self.assertEqual(resp.status_code, 200)
+
+            posts_after = len(Post.query.all())
+            self.assertEqual(posts_after + 1 , posts_before)
+
+            html = resp.get_data(as_text=True)
+            self.assertNotIn('test_title_2',html)
+
