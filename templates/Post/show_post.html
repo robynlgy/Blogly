@@ -1,0 +1,19 @@
+{% extends 'base.html' %} {% block content %}
+<h1>{{post.title}}</h1>
+
+<p>{{post.content}}</p>
+
+<p>By {{post.user.first_name}} {{post.user.last_name}} {{post.created_at}}</p>
+{% if tags %}
+<span><b>Tags:</b></span>
+{% endif %} {% for tag in tags %}
+<a href="/tags/{{tag.id}}">{{tag.name}}</a>
+{% endfor %}
+<div class="mt-3">
+  <a href="/users/{{post.user.id}}" class="btn btn-outline-primary">Cancel</a>
+  <a href="/posts/{{post.id}}/edit" class="btn btn-primary">Edit</a>
+  <form action="/posts/{{post.id}}/delete" method="post" class="d-inline">
+    <button class="btn btn-danger">Delete</button>
+  </form>
+</div>
+{% endblock %}
